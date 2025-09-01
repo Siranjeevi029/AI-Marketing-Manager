@@ -1,0 +1,105 @@
+:root{
+    --bg:#0f1724; --card:#0b1220; --muted:#9aa7bf;
+    --accent:#4f46e5; --accent-2:#06b6d4; --white:#f8fafc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#071227 0%, #081426 100%);color:var(--white);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px}
+  .topbar{background:transparent;padding:10px 0}
+  .logo{font-weight:700;font-size:1.1rem;display:inline-block}
+  .nav{float:right}
+  .btn{padding:8px 14px;border-radius:9px;border:0;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.06)}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),#7c3aed);color:var(--white);box-shadow:0 8px 30px rgba(79,70,229,0.15)}
+  .btn.large{padding:12px 20px;font-size:1rem;border-radius:12px}
+  .main-grid{display:grid;grid-template-columns:1fr;gap:22px}
+  .hero h1{font-size:2.1rem;margin:6px 0 10px}
+  .lead{color:var(--muted);margin-bottom:14px;max-width:720px}
+  .idea-box{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+  .label{font-size:0.9rem;color:var(--muted);display:block;margin-bottom:8px}
+  textarea#ideaBox{width:100%;padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:var(--white);resize:vertical;font-size:1rem}
+  .form-row{display:flex;gap:10px;margin-top:10px}
+  .form-row.small input{width:50%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--white)}
+  .form-row input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--white)}
+  .actions{margin-top:14px;display:flex;gap:10px;align-items:center}
+  .results{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+  .results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .status{font-size:0.9rem;color:var(--muted)}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+  .tab-btn.active{background:rgba(79,70,229,0.12);color:var(--white);border-color:rgba(79,70,229,0.28)}
+  .tab-content{background:rgba(255,255,255,0.01);padding:14px;border-radius:10px;min-height:180px}
+  .tab{display:none}
+  .tab.active{display:block}
+  .result-actions{display:flex;gap:10px;margin-top:12px}
+  .loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+  .loader-box{background:var(--card);padding:20px;border-radius:12px;display:flex;gap:12px;align-items:center}
+  .spinner{width:40px;height:40px;border-radius:50%;border:4px solid rgba(255,255,255,0.08);border-top-color:var(--accent);animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  
+  /* content display styles */
+  .kv {display:flex;gap:8px;align-items:center}
+  .kv .title{min-width:140px;color:var(--muted)}
+  .table{width:100%;border-collapse:collapse;margin-top:8px}
+  .table th, .table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;color:var(--white)}
+  .small-muted{color:var(--muted);font-size:0.9rem}
+  
+  /* Brand */
+.brand-card { text-align: center; }
+.brand-tagline {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+  color: var(--accent-2);
+}
+
+/* SEO tags */
+.tags { margin-top: 8px; }
+.tag {
+  display: inline-block;
+  background: rgba(79,70,229,0.15);
+  color: var(--white);
+  padding: 5px 10px;
+  margin: 4px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Content ideas */
+.content-cards {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.content-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Calendar */
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.calendar-table th, .calendar-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  text-align: left;
+}
+.calendar-table th {
+  background: rgba(79,70,229,0.15);
+  color: var(--white);
+}
+/* SEO Score */
+.seo-score-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-2);
+  margin-top: 8px;
+}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Marketing Manager — Analyze Business Idea</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="logo">AI Marketing</div>
+      <nav class="nav">
+        <button id="startBtn" class="btn primary">Analyze My Idea</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap main-grid">
+    <!-- Hero + Input -->
+    <section class="hero">
+      <h1>Turn your business idea into a complete marketing plan — instantly</h1>
+      <p class="lead">Describe your business idea in detail and we'll generate SEO keywords, a content calendar, captions, ad copy, and strategy.</p>
+
+      <div class="idea-box">
+        <label for="ideaBox" class="label">Describe your business idea in detail</label>
+        <textarea id="ideaBox" placeholder="E.g., I want to start an online store selling eco-friendly home decor..." rows="6"></textarea>
+
+        <div class="form-row">
+          <input id="audience" placeholder="Target audience (optional)" />
+          <input id="website" placeholder="Website (optional) - https://..." />
+        </div>
+
+        <div class="form-row small">
+          <input id="platforms" value="instagram,facebook,linkedin" />
+          <input id="days" type="number" value="14" min="3" max="60" />
+        </div>
+
+        <div class="actions">
+          <button id="analyzeBtn" class="btn primary large">Analyze My Idea</button>
+          <button id="clearBtn" class="btn ghost">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results" id="resultsSection" style="display:none">
+      <div class="results-header">
+        <h2>Analysis Results</h2>
+        <div id="status" class="status">Ready</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="brand">Brand</button>
+        <button class="tab-btn" data-tab="seo">SEO Keywords</button>
+        <button class="tab-btn" data-tab="content">Content Samples</button>
+        <button class="tab-btn" data-tab="calendar">Content Calendar</button>
+        <button class="tab-btn" data-tab="seo-score">SEO Score</button>
+      </div>
+
+      <div class="tab-content">
+        <div id="brand" class="tab active"></div>
+        <div id="seo" class="tab"></div>
+        <div id="content" class="tab"></div>
+        <div id="calendar" class="tab"></div>
+        <div id="seo-score" class="tab"></div>
+      </div>
+
+      <div class="result-actions">
+        <button id="exportPdf" class="btn">Export as PDF</button>
+        <button id="copyAll" class="btn">Copy All</button>
+        <button id="shareLink" class="btn ghost">Share Link</button>
+      </div>
+    </section>
+
+    <!-- Loader Modal -->
+    <div id="loader" class="loader" style="display:none">
+      <div class="loader-box">
+        <div class="spinner"></div>
+        <div>Analyzing your idea — generating plan...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

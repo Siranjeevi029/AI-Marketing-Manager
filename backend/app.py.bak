@@ -1,0 +1,189 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
+import os, json, re, random
+from datetime import date, timedelta
+import requests
+import google.generativeai as genai
+
+# --- Env & SDK setup ---
+load_dotenv()
+GEMINI_API_KEY = os.getenv("AIzaSyD8fE8QegrhMJhotFN1BrkGshTW90y0U8k", "").strip()
+PAGE_SPEED_KEY = os.getenv("AIzaSyA7Lfr6XPJkWOU3KPnN35oVxs7bangttEo", "").strip()
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY missing. Create backend/.env from .env.example and set GEMINI_API_KEY.")
+
+genai.configure(api_key=GEMINI_API_KEY)
+# Use a fast, affordable model; upgrade to 'gemini-1.5-pro' if needed
+MODEL_NAME = "gemini-1.5-flash"
+model = genai.GenerativeModel(MODEL_NAME)
+
+app = Flask(__name__)
+CORS(app)
+
+# --- Helpers ---
+def gemini_json(prompt: str, max_retries: int = 2):
+    """
+    Call Gemini and return parsed JSON. Tries to extract fenced code blocks if present.
+    """
+    for attempt in range(max_retries+1):
+        resp = model.generate_content(prompt)
+        text = (resp.text or "").strip()
+        # Try to extract JSON fence
+        m = re.search(r"```json\s*(\{.*?\}|\[.*?\])\s*```", text, re.S)
+        if not m:
+            m = re.search(r"```(\{.*?\}|\[.*?\])```", text, re.S)
+        if not m:
+            # try raw
+            m = re.search(r"(\{.*\}|\[.*\])", text, re.S)
+        js_text = m.group(1) if m else text
+        try:
+            return json.loads(js_text)
+        except Exception:
+            # Ask the model to fix to strict JSON on retry
+            prompt = f"Convert the following into strict, valid JSON ONLY (no comments, no prose):\n{text}"
+    # Final fallback
+    return {"_raw": text, "_error": "Failed to parse JSON from Gemini"}
+
+def simple_calendar(base_caption: str, platforms, days: int):
+    start = date.today()
+    grid = []
+    for i in range(days):
+        d = (start + timedelta(days=i)).isoformat()
+        posts = []
+        for p in platforms:
+            posts.append({
+                "platform": p,
+                "date": d,
+                "format": "image+caption",
+                "caption": f"{base_caption} — {p} day {i+1}"
+            })
+        grid.append({"day": i+1, "date": d, "posts": posts})
+    return grid
+
+# --- Routes ---
+@app.route("/api/analyze-business", methods=["POST"])
+def analyze_business():
+    data = request.get_json(force=True) or {}
+    idea = (data.get("businessIdea") or data.get("idea") or "").strip()
+    if not idea:
+        return jsonify({"error": "Provide 'businessIdea' in request body"}), 400
+
+    audience = (data.get("audience") or "").strip() or "general audience"
+    website = (data.get("website") or "").strip()
+    platforms = data.get("platforms") or ["instagram", "facebook", "linkedin"]
+    try:
+        days = int(data.get("durationDays") or 14)
+    except:
+        days = 14
+
+    # 1) Brand profile
+    profile_prompt = f"""
+You are a marketing strategist. Given the business idea:
+\"\"\"{idea}\"\"\"
+Target audience: {audience}
+
+Return ONLY JSON with this schema:
+{{
+  "name_suggestions": ["...", "...", "..."],
+  "brand_voice": "concise phrase",
+  "tone": "concise phrase",
+  "unique_value_props": ["...", "...", "..."]
+}}
+"""
+    brand_profile = gemini_json(profile_prompt)
+
+    # 2) SEO keywords
+    seo_prompt = f"""
+Suggest 12 SEO keywords for this business idea (mix of short-tail and long-tail).
+Idea: \"\"\"{idea}\"\"\"
+
+Return ONLY a JSON object:
+{{ "keywords": ["kw1","kw2", "..."] }}
+"""
+    seo = gemini_json(seo_prompt)
+    if not isinstance(seo, dict) or "keywords" not in seo:
+        # naive fallback
+        words = [w.lower() for w in idea.split() if len(w) > 3]
+        seo = {"keywords": list(dict.fromkeys(words))[:12], "_note":"fallback keywords"}
+
+    # 3) SEO score (optional via PageSpeed)
+    seo_score = {"score": None, "tips":[
+        "Add a unique meta title & description with your primary keyword.",
+        "Compress images and add descriptive alt text.",
+        "Use a clear H1 and logical H2/H3 structure.",
+        "Improve load speed: caching, minify JS/CSS, lazy-load images."
+    ]}
+    if website and PAGE_SPEED_KEY:
+        try:
+            r = requests.get(
+                "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+                params={"url": website, "key": PAGE_SPEED_KEY, "strategy":"mobile"},
+                timeout=30
+            )
+            if r.status_code == 200:
+                js = r.json()
+                sc = js.get("lighthouseResult",{}).get("categories",{}).get("performance",{}).get("score")
+                if sc is not None:
+                    seo_score = {"score": int(sc*100), "raw": js.get("lighthouseResult", {}).get("audits", {})}
+        except Exception as e:
+            seo_score = {"score": None, "error": f"PageSpeed error: {e}"}
+
+    # 4) Content samples
+    content_prompt = f"""
+Create content samples for the business idea below, in the given tone.
+Idea: \"\"\"{idea}\"\"\"
+Tone: {brand_profile.get('tone','friendly')}
+
+Return ONLY JSON:
+{{
+  "caption": "one short social caption (<= 25 words)",
+  "blog_outline": ["H1 title", "H2 section", "H2 section", "H2 section"],
+  "ad": {{"headline":"...", "body":"... (<= 40 words)"}},
+  "smm_tactics": {{"instagram":["...","...","..."], "facebook":["...","...","..."], "linkedin":["...","...","..."]}}
+}}
+"""
+    content_samples = gemini_json(content_prompt)
+    if not isinstance(content_samples, dict) or "caption" not in content_samples:
+        content_samples = {
+            "caption": f"Discover {idea} — crafted with care.",
+            "blog_outline": [f"What is {idea}?", "Benefits", "How it's made", "Customer tips"],
+            "ad": {"headline": f"Get {idea} Now", "body": "Special launch offer — limited stock."},
+            "smm_tactics": {p:["Post a product reel","Run a hashtag series","Collaborate with micro-influencers"] for p in ["instagram","facebook","linkedin"]},
+            "_note":"fallback content"
+        }
+
+    # 5) Calendar generation
+    calendar = simple_calendar(content_samples.get("caption","New post"), platforms, days)
+
+    # 6) Schedule suggestions
+    schedule_suggestion = {
+        "frequency_per_week": {p: 3 for p in platforms},
+        "best_times": {"instagram":"18:00","facebook":"12:30","linkedin":"09:00"}
+    }
+
+    return jsonify({
+        "businessIdea": idea,
+        "audience": audience,
+        "brand_profile": brand_profile,
+        "seo": seo,
+        "seo_score": seo_score,
+        "content_samples": content_samples,
+        "calendar": calendar,
+        "schedule_suggestion": schedule_suggestion,
+        "model": MODEL_NAME
+    })
+
+# Optional legacy endpoint to keep compatibility
+@app.route("/api/generate", methods=["POST"])
+def generate_legacy():
+    body = request.get_json(force=True) or {}
+    # proxy to analyze-business, mapping "idea" -> "businessIdea"
+    if "idea" in body and "businessIdea" not in body:
+        body["businessIdea"] = body["idea"]
+    with app.test_request_context(json=body):
+        return analyze_business()
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
