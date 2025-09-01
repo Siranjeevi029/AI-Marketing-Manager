@@ -154,7 +154,9 @@ id("seo-score").innerHTML = seoScore !== null
   })();
 
  
-
+//https://sample-spring-7j2j.onrender.com
+//https://amazon-shopping-app-js.netlify.app/
+//
 
 
   // i want to start a tea store which includes all the snacks items and the milk totallers
